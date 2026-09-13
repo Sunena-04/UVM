@@ -1,0 +1,54 @@
+// apb_transaction.sv
+`include "uvm_macros.svh"
+import uvm_pkg::*;
+
+class apb_transaction extends uvm_sequence_item;
+    `uvm_object_utils(apb_transaction)
+
+    rand bit [31:0] addr;  
+    rand bit [31:0] data;  
+    rand bit        write; 
+
+    // Standard UVM constructor
+    function new(string name = "apb_transaction");
+        super.new(name);
+    endfunction
+
+    virtual function string to_string();
+        return $sformatf("APB Transaction: %s | Addr = 0x%0h | Data = 0x%0h", 
+                         write ? "WRITE" : "READ", addr, data);
+    endfunction
+endclass
+
+
+// TEST WRAPPER 
+class my_test extends uvm_test;
+    `uvm_component_utils(my_test)
+
+    function new(string name = "my_test", uvm_component parent = null);
+        super.new(name, parent);
+    endfunction
+
+    task run_phase(uvm_phase phase);
+        apb_transaction tr;
+        
+        phase.raise_objection(this);
+
+        tr = apb_transaction::type_id::create("tr");
+        
+        if (!tr.randomize()) begin
+            `uvm_fatal("TEST", "Randomization failed!")
+        end
+       
+        `uvm_info("TEST", tr.to_string(), UVM_LOW)
+
+        phase.drop_objection(this);
+    endtask
+endclass
+
+// TOP MODULE 
+module top;
+    initial begin
+        run_test("my_test");
+    end
+endmodule

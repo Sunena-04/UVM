@@ -1,0 +1,52 @@
+`include "uvm_macros.svh"
+import uvm_pkg::*;
+
+// Base Driver
+class base_driver extends uvm_driver #(uvm_sequence_item);
+    `uvm_component_utils(base_driver)
+    
+    function new(string name = "base_driver", uvm_component parent = null);
+        super.new(name, parent);
+    endfunction
+
+    task run_phase(uvm_phase phase);
+        `uvm_info("BASE_DRV", "Running BASE driver implementation.", UVM_LOW)
+    endtask
+endclass
+
+// Override Driver
+class override_driver extends base_driver;
+    `uvm_component_utils(override_driver)
+
+    function new(string name = "override_driver", uvm_component parent = null);
+        super.new(name, parent);
+    endfunction
+
+    task run_phase(uvm_phase phase);
+        `uvm_info("OVR_DRV", "Running OVERRIDE driver implementation!", UVM_LOW)
+    endtask
+endclass
+
+// Test Class
+class my_test extends uvm_test;
+    `uvm_component_utils(my_test)    
+    base_driver drv;
+
+    function new(string name = "my_test", uvm_component parent = null);
+        super.new(name, parent);
+    endfunction
+    function void build_phase(uvm_phase phase);
+        super.build_phase(phase);
+        // FACTORY OVERRIDE: Replace base_driver with override_driver
+        base_driver::type_id::set_type_override(override_driver::get_type());      
+        // Create the driver using the factory (type_id::create)
+        drv = base_driver::type_id::create("drv", this);
+    endfunction
+endclass
+
+// Top Module
+module top;
+    initial begin
+        run_test("my_test");
+    end
+endmodule
